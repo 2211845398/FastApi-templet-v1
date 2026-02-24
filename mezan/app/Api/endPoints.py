@@ -1,5 +1,6 @@
-from api.v1 import health, auth
+from app.Api.v1 import health, auth
 from fastapi import APIRouter
+
 
 main_router = APIRouter()
 
