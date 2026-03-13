@@ -1,34 +1,58 @@
-from pydantic_settings import BaseSettings
+"""Application configuration management."""
+
 from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    """Application settings loaded from environment variables."""
 
-    #app
-    app_name: str = "Mezan"
-    app_version: str = "0.1.0"
-    app_description: str = "Mezan API"
-    app_host: str = "127.0.0.1"
-    app_port: int = 8000
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore",
+    )
 
-    #DB
-    #postgres
-    db_user: str = Field(default="postgres", env="POSTGRES_USER")
-    db_password: str = Field(default="admin", env="POSTGRES_PASSWORD")
-    db_name: str = Field(default="mezan_db", env="POSTGRES_DB")
-    db_host: str = Field(default="postgres", env="POSTGRES_HOST")
-    db_port: int = Field(default=5432, env="DB_PORT")
+    # Application
+    API_HOST: str = Field(default="0.0.0.0", description="API host address")
+    API_PORT: int = Field(default=8000, description="API port number")
+    ENVIRONMENT: str = Field(default="dev", description="Environment name (dev/staging/prod)")
+    SECRET_KEY: str = Field(..., description="Secret key for security operations")
+    DEBUG: bool = Field(default=False, description="Debug mode")
+
+    # Database
+    DATABASE_URL: str = Field(
+        ...,
+        description="PostgreSQL database connection URL",
+    )
+    POSTGRES_USER: str = Field(default="postgres", description="PostgreSQL user")
+    POSTGRES_PASSWORD: str = Field(..., description="PostgreSQL password")
+    POSTGRES_DB: str = Field(default="mezan", description="PostgreSQL database name")
+    POSTGRES_HOST: str = Field(default="db", description="PostgreSQL host")
+    POSTGRES_PORT: int = Field(default=5432, description="PostgreSQL port")
+
+    # Database Pool Settings
+    DB_POOL_SIZE: int = Field(default=5, description="Database connection pool size")
+    DB_MAX_OVERFLOW: int = Field(default=10, description="Database connection pool max overflow")
 
     @property
-    def database_url(self) -> str:
-        return f"postgresql://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"
-    
+    def database_url_async(self) -> str:
+        """Get async database URL for SQLAlchemy."""
+        if self.DATABASE_URL.startswith("postgresql://"):
+            return self.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
+        return self.DATABASE_URL
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        extra = "ignore"
+    @property
+    def is_production(self) -> bool:
+        """Check if running in production environment."""
+        return self.ENVIRONMENT == "prod"
+
+    @property
+    def is_development(self) -> bool:
+        """Check if running in development environment."""
+        return self.ENVIRONMENT == "dev"
 
 
+# Global settings instance
 settings = Settings()
-

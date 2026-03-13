@@ -1,32 +1,36 @@
-from passlib.context import CryptContext
-from datetime import datetime, timedelta
-from jose import JWTError, jwt
-from typing import Optional
-from app.core.config import settings
+"""Security utilities (placeholder)."""
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-def hash_password(password:str) -> str:
-    return pwd_context.hash(password)
+def hash_password(plain_password: str) -> str:
+    """
+    Hash a plain-text password.
 
-def verify_password(plain_password:str, hashed_password:str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    This is a placeholder. Replace with a proper implementation
+    using bcrypt or argon2 before production use.
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
+    Args:
+        plain_password: The plain-text password.
 
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
-    return encoded_jwt
+    Returns:
+        Hashed password string.
+    """
+    # TODO: Use bcrypt / passlib
+    return f"hashed_{plain_password}"
 
-def decode_access_token(token: str) -> dict:
-    try:
-        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
-        return payload
-    except JWTError:
-        return None
-        
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """
+    Verify a plain-text password against a hash.
+
+    This is a placeholder. Replace with a proper implementation
+    using bcrypt or argon2 before production use.
+
+    Args:
+        plain_password: The plain-text password to verify.
+        hashed_password: The stored hashed password.
+
+    Returns:
+        True if the password matches the hash, False otherwise.
+    """
+    # TODO: Use bcrypt / passlib
+    return hashed_password == f"hashed_{plain_password}"
